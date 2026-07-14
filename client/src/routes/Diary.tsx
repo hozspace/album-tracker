@@ -93,7 +93,7 @@ function DiaryRow({ log }: { log: Log }) {
         <span className="log-entry__weekday">{weekdayLabel(log.listenedOn)}</span>
       </div>
       <div className="log-entry__art">
-        <AlbumArt src={log.artUrl} alt={`${log.title} cover art`} />
+        <AlbumArt src={log.artUrl} alt={`${log.title} cover art`} title={log.title} />
       </div>
       <div className="log-entry__meta">
         <span className="log-entry__title">{log.title}</span>

@@ -9,4 +9,15 @@
 
 .album-art--placeholder {
   background: var(--surface);
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.album-art__initial {
+  font-size: clamp(14px, 40cqw, 96px);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-2);
 }
