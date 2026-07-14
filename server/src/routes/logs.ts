@@ -9,8 +9,9 @@ import {
 } from '../validation/logValidation.js'
 import { ValidationError } from '../lib/validationError.js'
 import { fail, ok } from '../lib/envelope.js'
+import { cacheArtForLog, removeArtFile } from '../lib/artCache.js'
 
-export function createLogsRouter(db: Database.Database): Router {
+export function createLogsRouter(db: Database.Database, artDir: string): Router {
   const router = Router()
 
   router.get('/', (req, res) => {
@@ -27,6 +28,10 @@ export function createLogsRouter(db: Database.Database): Router {
       const input = validateCreateLog(req.body)
       const created = logsRepository.create(db, input)
       res.status(201).json(ok(created))
+      // Fire-and-forget: the client shouldn't wait on an external image
+      // download. The row is rewritten to point at the local cache once the
+      // download completes; failures are logged and leave artUrl untouched.
+      void cacheArtForLog(db, artDir, created)
     } catch (error) {
       handleError(res, error)
     }
@@ -49,12 +54,21 @@ export function createLogsRouter(db: Database.Database): Router {
   router.put('/:id', (req, res) => {
     try {
       const id = parseLogId(req.params.id)
-      if (!logsRepository.findById(db, id)) {
+      const existing = logsRepository.findById(db, id)
+      if (!existing) {
         res.status(404).json(fail('log not found'))
         return
       }
       const input = validateUpdateLog(req.body)
-      res.json(ok(logsRepository.update(db, id, input)))
+      const updated = logsRepository.update(db, id, input)
+      res.json(ok(updated))
+
+      const artUrlChanged = input.artUrl !== undefined && input.artUrl !== existing.artUrl
+      if (artUrlChanged && updated) {
+        // The old cached file (if any) no longer matches the new artUrl.
+        removeArtFile(artDir, id)
+        void cacheArtForLog(db, artDir, updated)
+      }
     } catch (error) {
       handleError(res, error)
     }
@@ -68,6 +82,7 @@ export function createLogsRouter(db: Database.Database): Router {
         res.status(404).json(fail('log not found'))
         return
       }
+      removeArtFile(artDir, id)
       res.json(ok({ deleted: true }))
     } catch (error) {
       handleError(res, error)

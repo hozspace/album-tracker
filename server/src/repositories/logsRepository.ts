@@ -123,6 +123,15 @@ export function remove(db: Database.Database, id: number): boolean {
   return result.changes > 0
 }
 
+export function findWithExternalArtUrl(db: Database.Database): Log[] {
+  const rows = db
+    .prepare(
+      `SELECT * FROM logs WHERE art_url LIKE 'http://%' OR art_url LIKE 'https://%'`,
+    )
+    .all() as LogRow[]
+  return rows.map(toLog)
+}
+
 export function countTotal(db: Database.Database): number {
   const { count } = db.prepare('SELECT COUNT(*) as count FROM logs').get() as {
     count: number
