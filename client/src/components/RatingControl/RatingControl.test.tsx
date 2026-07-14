@@ -11,13 +11,33 @@ describe('RatingControl', () => {
   test('renders five stars with the correct half-fill for a fractional value', () => {
     render(<RatingControl value={2.5} onChange={vi.fn()} />)
 
-    const stars = document.querySelectorAll('.rating__star-fg')
-    expect(stars).toHaveLength(5)
-    expect((stars[0] as HTMLElement).style.width).toBe('100%')
-    expect((stars[1] as HTMLElement).style.width).toBe('100%')
-    expect((stars[2] as HTMLElement).style.width).toBe('50%')
-    expect((stars[3] as HTMLElement).style.width).toBe('0%')
-    expect((stars[4] as HTMLElement).style.width).toBe('0%')
+    const svgs = document.querySelectorAll('.rating__star-svg')
+    expect(svgs).toHaveLength(5)
+
+    const fillWidths = Array.from(svgs).map((svg) => {
+      const rect = svg.querySelector('clipPath rect')
+      return rect ? Number(rect.getAttribute('width')) : 0
+    })
+    expect(fillWidths).toEqual([24, 24, 12, 0, 0])
+  })
+
+  test('renders stars as crisp vector paths, not font glyphs', () => {
+    render(<RatingControl value={3} readOnly />)
+
+    expect(document.querySelectorAll('.rating__star-svg')).toHaveLength(5)
+    expect(document.querySelectorAll('.rating__star-bg')).toHaveLength(5)
+    expect(document.body.textContent).not.toContain('★')
+  })
+
+  test('uses a larger touch target for the interactive control than for read-only display', () => {
+    const { unmount } = render(<RatingControl value={3} onChange={vi.fn()} />)
+    const interactiveSvg = document.querySelector('.rating__star-svg') as SVGElement
+    expect(interactiveSvg.getAttribute('width')).toBe('28')
+    unmount()
+
+    render(<RatingControl value={3} readOnly />)
+    const readOnlySvg = document.querySelector('.rating__star-svg') as SVGElement
+    expect(readOnlySvg.getAttribute('width')).toBe('16')
   })
 
   test('reports a value on pointer down without requiring a drag', () => {

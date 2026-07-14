@@ -1,30 +1,39 @@
 .rating {
   display: inline-flex;
   gap: 2px;
-  touch-action: none;
-  cursor: pointer;
   user-select: none;
 }
 
-.rating[role='img'] {
+.rating--interactive {
+  touch-action: none;
+  cursor: pointer;
+}
+
+.rating--readonly {
   cursor: default;
 }
 
 .rating__star {
   position: relative;
-  display: inline-block;
-  font-size: 20px;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rating--interactive .rating__star {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.rating__star-svg {
+  display: block;
 }
 
 .rating__star-bg {
-  color: var(--divider);
+  fill: var(--divider);
 }
 
 .rating__star-fg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  color: var(--rating);
+  fill: var(--rating);
 }

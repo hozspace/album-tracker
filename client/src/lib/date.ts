@@ -1,5 +1,6 @@
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat('en-US', { weekday: 'short' })
 const MONTH_FORMAT = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' })
+const FULL_DATE_FORMAT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
 function parseIsoDate(isoDate: string): Date {
   const [year, month, day] = isoDate.split('-').map(Number)
@@ -28,4 +29,9 @@ export function monthKey(isoDate: string): string {
 
 export function monthLabel(isoDate: string): string {
   return MONTH_FORMAT.format(parseIsoDate(isoDate))
+}
+
+/** Formats an ISO date (e.g. "2026-07-12") as "12 July 2026" for user-facing display. */
+export function formatDate(isoDate: string): string {
+  return FULL_DATE_FORMAT.format(parseIsoDate(isoDate))
 }

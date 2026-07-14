@@ -1,7 +1,11 @@
 import { useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { MAX_RATING, MIN_RATING, RATING_STEP, STAR_COUNT, starFillRatio, valueFromPointerX } from './ratingMath'
+import { StarIcon } from './StarIcon'
 import './RatingControl.css'
+
+const READ_ONLY_STAR_SIZE = 16
+const INTERACTIVE_STAR_SIZE = 28
 
 interface RatingControlProps {
   value: number
@@ -14,6 +18,7 @@ export function RatingControl({ value, onChange, readOnly = false, label = 'Rati
   const trackRef = useRef<HTMLDivElement>(null)
   const [dragValue, setDragValue] = useState<number | null>(null)
   const displayValue = dragValue ?? value
+  const starSize = readOnly ? READ_ONLY_STAR_SIZE : INTERACTIVE_STAR_SIZE
 
   function valueAtClientX(clientX: number): number {
     const rect = trackRef.current?.getBoundingClientRect()
@@ -53,7 +58,7 @@ export function RatingControl({ value, onChange, readOnly = false, label = 'Rati
   return (
     <div
       ref={trackRef}
-      className="rating"
+      className={readOnly ? 'rating rating--readonly' : 'rating rating--interactive'}
       role={readOnly ? 'img' : 'slider'}
       aria-label={readOnly ? `${label}: ${displayValue} out of 5 stars` : label}
       aria-valuemin={readOnly ? undefined : MIN_RATING}
@@ -68,14 +73,8 @@ export function RatingControl({ value, onChange, readOnly = false, label = 'Rati
       onKeyDown={handleKeyDown}
     >
       {Array.from({ length: STAR_COUNT }, (_, index) => (
-        <span className="rating__star" key={index} aria-hidden="true">
-          <span className="rating__star-bg">★</span>
-          <span
-            className="rating__star-fg"
-            style={{ width: `${starFillRatio(displayValue, index) * 100}%` }}
-          >
-            ★
-          </span>
+        <span className="rating__star" key={index}>
+          <StarIcon fillRatio={starFillRatio(displayValue, index)} size={starSize} />
         </span>
       ))}
     </div>

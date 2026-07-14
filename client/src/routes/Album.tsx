@@ -7,6 +7,7 @@ import { BottomNav } from '../components/BottomNav'
 import { RatingControl } from '../components/RatingControl/RatingControl'
 import { TopBar } from '../components/TopBar'
 import { errorMessage } from '../lib/errorMessage'
+import { formatDate } from '../lib/date'
 import { fetchTracklist } from '../musicbrainz/tracklist'
 import type { Track } from '../musicbrainz/types'
 import './Album.css'
@@ -79,7 +80,7 @@ function AlbumBody({ state, tracks, onLogAgain }: AlbumBodyProps) {
   return (
     <article className="album-detail">
       <div className="album-detail__hero">
-        <AlbumArt src={log.artUrl} alt={`${log.title} cover art`} />
+        <AlbumArt src={log.artUrl} alt={`${log.title} cover art`} title={log.title} />
       </div>
 
       <h1 className="album-detail__title">{log.title}</h1>
@@ -95,7 +96,7 @@ function AlbumBody({ state, tracks, onLogAgain }: AlbumBodyProps) {
         </dd>
 
         <dt>Listened</dt>
-        <dd>{log.listenedOn}</dd>
+        <dd>{formatDate(log.listenedOn)}</dd>
 
         {log.faveTrack && (
           <>

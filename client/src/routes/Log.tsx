@@ -74,7 +74,7 @@ function AlbumSearch({ onSelect }: { onSelect: (album: ReleaseGroupSearchResult)
               onClick={() => onSelect(result)}
             >
               <div className="album-search__art">
-                <AlbumArt src={coverArtUrl(result.mbid)} alt={`${result.title} cover art`} />
+                <AlbumArt src={coverArtUrl(result.mbid)} alt={`${result.title} cover art`} title={result.title} />
               </div>
               <div className="album-search__meta">
                 <span className="album-search__title">{result.title}</span>
@@ -152,7 +152,7 @@ function LogForm({ album, onDone, onChangeAlbum }: LogFormProps) {
     <form className="log-form" onSubmit={handleSubmit}>
       <button type="button" className="log-form__selected" onClick={onChangeAlbum}>
         <div className="log-form__art">
-          <AlbumArt src={coverArtUrl(album.mbid)} alt={`${album.title} cover art`} />
+          <AlbumArt src={coverArtUrl(album.mbid)} alt={`${album.title} cover art`} title={album.title} />
         </div>
         <div className="log-form__selected-meta">
           <span className="log-form__title">{album.title}</span>
