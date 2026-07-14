@@ -1,0 +1,8 @@
+services:
+  album-tracker:
+    build: .
+    ports:
+      - "4180:4180"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
