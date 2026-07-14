@@ -2,6 +2,10 @@
   display: inline-flex;
   gap: 2px;
   user-select: none;
+  /* flex parents stretch children cross-axis; the pointer maths needs the
+     element exactly as wide as the stars */
+  width: fit-content;
+  align-self: flex-start;
 }
 
 .rating--interactive {
