@@ -1,0 +1,25 @@
+:root,
+:root.theme-minimal {
+  --bg: #ffffff;
+  --surface: #f5f5f4;
+  --text: #111111;
+  --text-2: #6e6e73;
+  --divider: #e5e5e5;
+  --accent: #ff453a;
+  --rating: #ff453a;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: var(--font-ui);
+  --radius: 0;
+  --cell: 1ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root,
+  :root.theme-minimal {
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --text: #f2f2f2;
+    --text-2: #8e8e93;
+    --divider: #2c2c2e;
+  }
+}

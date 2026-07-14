@@ -1,0 +1,81 @@
+.diary__month-header {
+  position: sticky;
+  top: 44px;
+  background: var(--bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  padding: 8px 0;
+  margin: 0;
+  z-index: 5;
+}
+
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.log-entry__date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.log-entry__day {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.log-entry__weekday {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.log-entry__art {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+}
+
+.log-entry__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.log-entry__title {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-entry__artist {
+  font-size: 13px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-entry__relisten {
+  margin-left: auto;
+  color: var(--text-2);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.diary__footer {
+  color: var(--text-2);
+  font-size: 13px;
+  padding: 16px 0;
+}
