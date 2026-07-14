@@ -4,9 +4,14 @@ import type Database from 'better-sqlite3'
 import { createLogsRouter } from './routes/logs.js'
 import { createStatsRouter } from './routes/stats.js'
 import { createArtRouter } from './routes/art.js'
+import { createRecsRouter, type RecsRouterOptions } from './routes/recs.js'
 import { ART_DIR } from './lib/dataDir.js'
 
-export function createApp(db: Database.Database, artDir: string = ART_DIR): Express {
+export function createApp(
+  db: Database.Database,
+  artDir: string = ART_DIR,
+  recsOptions: RecsRouterOptions = {},
+): Express {
   const app = express()
   app.use(express.json())
 
@@ -17,6 +22,7 @@ export function createApp(db: Database.Database, artDir: string = ART_DIR): Expr
   app.use('/api/logs', createLogsRouter(db, artDir))
   app.use('/api/art', createArtRouter(artDir))
   app.use('/api/stats', createStatsRouter(db))
+  app.use('/api/recs', createRecsRouter(db, recsOptions))
 
   if (process.env.NODE_ENV === 'production') {
     const staticDir = path.resolve(

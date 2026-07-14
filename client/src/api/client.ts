@@ -1,4 +1,4 @@
-import type { ApiEnvelope, Log, LogsPage, NewLog, Stats } from './types'
+import type { ApiEnvelope, Log, LogsPage, NewLog, Rec, RecsPage, RecsSeed, Stats } from './types'
 
 export class ApiError extends Error {}
 
@@ -50,4 +50,12 @@ export const api = {
     request<null>(`/logs/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   getStats: () => request<Stats>('/stats'),
+
+  getRecs: () => request<RecsPage>('/recs'),
+
+  generateRecs: (seed?: RecsSeed) =>
+    request<RecsPage>('/recs/generate', { method: 'POST', body: JSON.stringify(seed ? { seed } : {}) }),
+
+  updateRecStatus: (id: number, status: Rec['status']) =>
+    request<Rec>(`/recs/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
 }

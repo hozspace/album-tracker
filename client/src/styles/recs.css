@@ -1,0 +1,54 @@
+.recs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recs__card {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.recs__art {
+  width: 4rem;
+  height: 4rem;
+  flex-shrink: 0;
+}
+
+.recs__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.recs__title {
+  font-weight: 600;
+}
+
+.recs__mode {
+  opacity: 0.6;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.recs__because {
+  margin: 0;
+}
+
+.recs__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.recs__seed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-block-end: 1rem;
+}
+
+.recs__generate {
+  margin-block-end: 1.5rem;
+}
