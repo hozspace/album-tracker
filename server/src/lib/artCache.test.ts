@@ -85,6 +85,26 @@ describe('backfillArtCache', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('re-downloads art when a local artUrl has no file behind it and the log has an mbid', async () => {
+    // Arrange
+    const fetchMock = vi.fn().mockResolvedValue(fakeArtResponse())
+    vi.stubGlobal('fetch', fetchMock)
+    const created = logsRepository.create(db, makeCreateInput({ mbid: 'xyz' }))
+    logsRepository.update(db, created.id, { artUrl: `/api/art/${created.id}` })
+
+    // Act
+    await backfillArtCache(db, artDir)
+
+    // Assert
+    const repaired = logsRepository.findById(db, created.id)
+    expect(repaired?.artUrl).toBe(`/api/art/${created.id}`)
+    expect(existsSync(join(artDir, `${created.id}.jpg`))).toBe(true)
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://coverartarchive.org/release-group/xyz/front-500',
+      expect.anything(),
+    )
+  })
+
   it('logs and skips a log whose download fails, leaving its artUrl external', async () => {
     // Arrange
     const fetchMock = vi.fn().mockRejectedValue(new Error('network down'))

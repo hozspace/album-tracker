@@ -132,6 +132,11 @@ export function findWithExternalArtUrl(db: Database.Database): Log[] {
   return rows.map(toLog)
 }
 
+export function findWithLocalArtUrl(db: Database.Database): Log[] {
+  const rows = db.prepare(`SELECT * FROM logs WHERE art_url LIKE '/api/art/%'`).all() as LogRow[]
+  return rows.map(toLog)
+}
+
 export function countTotal(db: Database.Database): number {
   const { count } = db.prepare('SELECT COUNT(*) as count FROM logs').get() as {
     count: number

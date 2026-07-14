@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, renameSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type Database from 'better-sqlite3'
 import * as logsRepository from '../repositories/logsRepository.js'
@@ -114,7 +114,11 @@ function extensionForContentType(contentType: string): string {
 function saveArtFile(artDir: string, logId: number, art: DownloadedArt): void {
   mkdirSync(artDir, { recursive: true })
   removeArtFile(artDir, logId)
-  writeFileSync(join(artDir, `${logId}.${art.extension}`), art.buffer)
+  // temp-write + rename so an interrupted write can't leave a partial file
+  const finalPath = join(artDir, `${logId}.${art.extension}`)
+  const tempPath = `${finalPath}.tmp`
+  writeFileSync(tempPath, art.buffer)
+  renameSync(tempPath, finalPath)
 }
 
 // Downloads and caches art for a log if its artUrl is an external, allowed
@@ -141,6 +145,7 @@ export async function cacheArtForLog(
 // caches them one at a time, with a short delay between downloads so we
 // don't hammer the upstream host. Failures are logged and skipped.
 export async function backfillArtCache(db: Database.Database, artDir: string): Promise<void> {
+  repairMissingArtFiles(db, artDir)
   const pending = logsRepository.findWithExternalArtUrl(db)
   for (const [index, log] of pending.entries()) {
     await cacheArtForLog(db, artDir, log)
@@ -148,6 +153,23 @@ export async function backfillArtCache(db: Database.Database, artDir: string): P
     if (!isLast) {
       await delay(BACKFILL_DELAY_MS)
     }
+  }
+}
+
+// A row can point at /api/art/{id} with no file behind it (e.g. the process
+// died between the row update and a durable file landing). When the log has
+// an mbid we can rebuild the Cover Art Archive URL and let the normal
+// backfill re-download it.
+function repairMissingArtFiles(db: Database.Database, artDir: string): void {
+  for (const log of logsRepository.findWithLocalArtUrl(db)) {
+    if (findArtFile(artDir, log.id)) continue
+    if (!log.mbid) {
+      console.error(`log ${log.id} has local artUrl but no cached file and no mbid to re-fetch from`)
+      continue
+    }
+    logsRepository.update(db, log.id, {
+      artUrl: `https://coverartarchive.org/release-group/${log.mbid}/front-500`,
+    })
   }
 }
 
