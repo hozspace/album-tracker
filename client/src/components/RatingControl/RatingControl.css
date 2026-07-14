@@ -1,0 +1,30 @@
+.rating {
+  display: inline-flex;
+  gap: 2px;
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rating[role='img'] {
+  cursor: default;
+}
+
+.rating__star {
+  position: relative;
+  display: inline-block;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.rating__star-bg {
+  color: var(--divider);
+}
+
+.rating__star-fg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--rating);
+}
