@@ -1,3 +1,4 @@
+import './env.js'
 import { createApp } from './app.js'
 import { db } from './db.js'
 import { backfillArtCache } from './lib/artCache.js'
