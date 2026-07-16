@@ -21,14 +21,27 @@ interface SelectedAlbum {
   year: number | null
 }
 
+interface EditValues {
+  rating: number
+  faveTrack: string | null
+  listenedOn: string
+  relisten: boolean
+  note: string | null
+}
+
 interface LocationState {
   album?: SelectedAlbum
+  editLogId?: string
+  editValues?: EditValues
 }
 
 export function Log() {
   const location = useLocation()
   const navigate = useNavigate()
-  const prefill = (location.state as LocationState | null)?.album ?? null
+  const state = (location.state as LocationState | null) ?? null
+  const prefill = state?.album ?? null
+  const editLogId = state?.editLogId
+  const editValues = state?.editValues
 
   const [selected, setSelected] = useState<SelectedAlbum | null>(prefill)
 
@@ -42,7 +55,13 @@ export function Log() {
 
   return (
     <Screen screen="log" title="Log">
-      <LogForm album={selected} onDone={() => navigate('/')} onChangeAlbum={() => setSelected(null)} />
+      <LogForm
+        album={selected}
+        editLogId={editLogId}
+        editValues={editValues}
+        onDone={() => navigate(editLogId ? `/album/${editLogId}` : '/')}
+        onChangeAlbum={() => setSelected(null)}
+      />
     </Screen>
   )
 }
@@ -93,16 +112,18 @@ function AlbumSearch({ onSelect }: { onSelect: (album: ReleaseGroupSearchResult)
 
 interface LogFormProps {
   album: SelectedAlbum
+  editLogId?: string
+  editValues?: EditValues
   onDone: () => void
   onChangeAlbum: () => void
 }
 
-function LogForm({ album, onDone, onChangeAlbum }: LogFormProps) {
-  const [rating, setRating] = useState(3)
-  const [faveTrack, setFaveTrack] = useState('')
-  const [listenedOn, setListenedOn] = useState(todayIsoDate())
-  const [relisten, setRelisten] = useState(false)
-  const [note, setNote] = useState('')
+function LogForm({ album, editLogId, editValues, onDone, onChangeAlbum }: LogFormProps) {
+  const [rating, setRating] = useState(editValues?.rating ?? 3)
+  const [faveTrack, setFaveTrack] = useState(editValues?.faveTrack ?? '')
+  const [listenedOn, setListenedOn] = useState(editValues?.listenedOn ?? todayIsoDate())
+  const [relisten, setRelisten] = useState(editValues?.relisten ?? false)
+  const [note, setNote] = useState(editValues?.note ?? '')
   const [tracks, setTracks] = useState<Track[] | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -140,7 +161,11 @@ function LogForm({ album, onDone, onChangeAlbum }: LogFormProps) {
     }
 
     try {
-      await api.createLog(payload)
+      if (editLogId) {
+        await api.updateLog(editLogId, payload)
+      } else {
+        await api.createLog(payload)
+      }
       onDone()
     } catch (error) {
       setSubmitError(errorMessage(error))
@@ -207,7 +232,7 @@ function LogForm({ album, onDone, onChangeAlbum }: LogFormProps) {
       {submitError && <p className="error-state">{submitError}</p>}
 
       <button type="submit" className="log-form__submit" disabled={submitting}>
-        Log
+        {editLogId ? 'Save' : 'Log'}
       </button>
     </form>
   )

@@ -47,7 +47,13 @@ export function Album() {
 
   return (
     <Screen screen="album" title="Album" pageNumber={id ? pageNumberForAlbum(id) : undefined}>
-      <AlbumBody state={state} tracks={tracks} onLogAgain={(log) => navigateToLog(navigate, log)} />
+      <AlbumBody
+        state={state}
+        tracks={tracks}
+        onLogAgain={(log) => navigateToLog(navigate, log)}
+        onEdit={(log) => navigateToEdit(navigate, log)}
+        onDeleted={() => navigate('/')}
+      />
     </Screen>
   )
 }
@@ -58,13 +64,31 @@ function navigateToLog(navigate: ReturnType<typeof useNavigate>, log: Log) {
   })
 }
 
+function navigateToEdit(navigate: ReturnType<typeof useNavigate>, log: Log) {
+  navigate('/log', {
+    state: {
+      album: { mbid: log.mbid, title: log.title, artist: log.artist, year: log.year },
+      editLogId: log.id,
+      editValues: {
+        rating: log.rating,
+        faveTrack: log.faveTrack,
+        listenedOn: log.listenedOn,
+        relisten: log.relisten,
+        note: log.note,
+      },
+    },
+  })
+}
+
 interface AlbumBodyProps {
   state: AlbumState
   tracks: Track[] | null
   onLogAgain: (log: Log) => void
+  onEdit: (log: Log) => void
+  onDeleted: () => void
 }
 
-function AlbumBody({ state, tracks, onLogAgain }: AlbumBodyProps) {
+function AlbumBody({ state, tracks, onLogAgain, onEdit, onDeleted }: AlbumBodyProps) {
   if (state.status === 'loading') return null
 
   if (state.status === 'error') {
@@ -114,9 +138,15 @@ function AlbumBody({ state, tracks, onLogAgain }: AlbumBodyProps) {
         )}
       </dl>
 
-      <button type="button" className="album-detail__relog" onClick={() => onLogAgain(log)}>
-        Log again
-      </button>
+      <div className="album-detail__actions">
+        <button type="button" className="album-detail__relog" onClick={() => onLogAgain(log)}>
+          Log again
+        </button>
+        <button type="button" className="album-detail__edit" onClick={() => onEdit(log)}>
+          Edit
+        </button>
+        <DeleteAction logId={log.id} onDeleted={onDeleted} />
+      </div>
 
       {tracks && tracks.length > 0 && (
         <ol className="album-detail__tracklist">
@@ -131,5 +161,59 @@ function AlbumBody({ state, tracks, onLogAgain }: AlbumBodyProps) {
         </ol>
       )}
     </article>
+  )
+}
+
+interface DeleteActionProps {
+  logId: string
+  onDeleted: () => void
+}
+
+function DeleteAction({ logId, onDeleted }: DeleteActionProps) {
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  async function handleConfirm() {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await api.deleteLog(logId)
+      onDeleted()
+    } catch (error) {
+      setDeleteError(errorMessage(error))
+      setDeleting(false)
+    }
+  }
+
+  if (confirming) {
+    return (
+      <div className="album-detail__delete-confirm">
+        <span className="album-detail__delete-confirm-text">Delete this log?</span>
+        <button
+          type="button"
+          className="album-detail__delete-confirm-yes"
+          onClick={handleConfirm}
+          disabled={deleting}
+        >
+          Yes, delete
+        </button>
+        <button
+          type="button"
+          className="album-detail__delete-confirm-no"
+          onClick={() => setConfirming(false)}
+          disabled={deleting}
+        >
+          Cancel
+        </button>
+        {deleteError && <p className="error-state">{deleteError}</p>}
+      </div>
+    )
+  }
+
+  return (
+    <button type="button" className="album-detail__delete" onClick={() => setConfirming(true)}>
+      Delete
+    </button>
   )
 }

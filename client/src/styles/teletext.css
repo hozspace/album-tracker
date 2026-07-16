@@ -401,13 +401,42 @@
   color: var(--tt-green);
 }
 
-.theme-teletext .album-detail__relog {
+.theme-teletext .album-detail__actions {
+  gap: 2ch;
+  margin-top: 1em;
+}
+
+.theme-teletext .album-detail__relog,
+.theme-teletext .album-detail__edit,
+.theme-teletext .album-detail__delete,
+.theme-teletext .album-detail__delete-confirm-yes,
+.theme-teletext .album-detail__delete-confirm-no {
   background: none;
   border: none;
-  color: var(--tt-green);
   font-family: inherit;
   padding: 8px 0;
-  margin-top: 1em;
+}
+
+.theme-teletext .album-detail__relog,
+.theme-teletext .album-detail__edit {
+  color: var(--tt-green);
+}
+
+.theme-teletext .album-detail__delete,
+.theme-teletext .album-detail__delete-confirm-yes {
+  color: var(--tt-red);
+}
+
+.theme-teletext .album-detail__delete-confirm {
+  gap: 2ch;
+}
+
+.theme-teletext .album-detail__delete-confirm-text {
+  color: var(--tt-white);
+}
+
+.theme-teletext .album-detail__delete-confirm-no {
+  color: var(--tt-cyan);
 }
 
 .theme-teletext .album-detail__tracklist {
@@ -448,6 +477,164 @@
   .theme-teletext .album-detail__hero {
     grid-row: auto;
   }
+}
+
+/* ================= Recs (P300) ================= */
+
+/* "NOW TUNE TO..." replaces the generic screen-title heading, same
+   off-screen-the-original-then-substitute technique as album detail above. */
+.theme-teletext main[data-screen='recs'] .screen-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  transform: none;
+}
+
+.theme-teletext .recs__tt-header {
+  display: block;
+  color: var(--tt-yellow);
+  font-weight: normal;
+  margin: 0 0 1.1em;
+  transform: scaleY(2);
+  transform-origin: top left;
+}
+
+.theme-teletext .recs__seed {
+  gap: 4px;
+}
+
+.theme-teletext .recs__seed select {
+  background: var(--tt-blue);
+  color: var(--tt-white);
+  border: none;
+  border-radius: 0;
+  font-family: inherit;
+}
+
+.theme-teletext .recs__generate button {
+  background: none;
+  border: none;
+  color: var(--tt-green);
+  font-family: inherit;
+  padding: 8px 0;
+}
+
+/* Subpage carousel: every rec is always in the DOM (theme-blind markup);
+   only the one flagged data-active by RecsCarousel is shown. */
+.theme-teletext .recs__list {
+  display: block;
+}
+
+.theme-teletext .recs__card {
+  display: none;
+}
+
+.theme-teletext .recs__card[data-active] {
+  display: block;
+  position: relative;
+}
+
+.theme-teletext .recs__subpage {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: var(--tt-white);
+}
+
+.theme-teletext .recs__art {
+  width: 16ch;
+  aspect-ratio: 1 / 1;
+  margin: 0 0 1em;
+  border: 1px solid var(--tt-white);
+}
+
+.theme-teletext .recs__body {
+  display: block;
+}
+
+.theme-teletext .recs__title {
+  display: block;
+  color: var(--tt-white);
+  font-weight: normal;
+  margin-bottom: 0.3em;
+}
+
+.theme-teletext .recs__meta {
+  display: block;
+  margin-bottom: 0.3em;
+}
+
+.theme-teletext .recs__artist {
+  color: var(--tt-green);
+}
+
+.theme-teletext .recs__year {
+  color: var(--tt-cyan);
+}
+
+.theme-teletext .recs__because {
+  color: var(--tt-white);
+  margin: 0.5em 0;
+}
+
+.theme-teletext .recs__mode {
+  display: none;
+}
+
+.theme-teletext .recs__actions {
+  gap: 2ch;
+  margin-top: 0.5em;
+}
+
+.theme-teletext .recs__logit,
+.theme-teletext .recs__dismiss {
+  position: relative;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 8px 1ch;
+  cursor: pointer;
+}
+
+.theme-teletext .recs__action-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.theme-teletext .recs__logit::after {
+  content: 'LOG IT';
+  color: var(--tt-green);
+}
+
+.theme-teletext .recs__dismiss::after {
+  content: 'PASS';
+  color: var(--tt-red);
+}
+
+.theme-teletext .recs__next {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--tt-green);
+  font-family: inherit;
+  text-transform: uppercase;
+  padding: 8px 0;
+  margin-top: 1em;
+  cursor: pointer;
 }
 
 /* ================= Settings (P400) ================= */

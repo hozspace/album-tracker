@@ -1,0 +1,67 @@
+.artist-autocomplete {
+  position: relative;
+}
+
+.artist-autocomplete__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.artist-autocomplete__results {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.artist-autocomplete__result {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  font: inherit;
+}
+
+.theme-teletext .artist-autocomplete__input {
+  background: var(--tt-blue);
+  color: var(--tt-white);
+  border: none;
+  caret-color: var(--tt-white);
+  font-family: inherit;
+}
+
+.theme-teletext .artist-autocomplete__input::placeholder {
+  color: var(--tt-white);
+  opacity: 0.8;
+}
+
+.theme-teletext .artist-autocomplete__results {
+  background: var(--tt-blue);
+  border: none;
+  border-radius: 0;
+}
+
+.theme-teletext .artist-autocomplete__result {
+  color: var(--tt-white);
+  font-family: inherit;
+}

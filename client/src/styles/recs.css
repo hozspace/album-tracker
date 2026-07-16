@@ -42,11 +42,32 @@
   gap: 0.5rem;
 }
 
+/* P300 teletext-only furniture: rendered always (theme-blind markup) but
+   hidden here by default so theme-minimal is byte-for-byte what it was
+   before the carousel existed. teletext.css turns each of these on. */
+.recs__tt-header,
+.recs__subpage,
+.recs__next {
+  display: none;
+}
+
 .recs__seed {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-block-end: 1rem;
+}
+
+.recs__seed select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
 }
 
 .recs__generate {

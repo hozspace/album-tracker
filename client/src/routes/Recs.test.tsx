@@ -18,6 +18,10 @@ vi.mock('../api/client', async () => {
   }
 })
 
+vi.mock('../musicbrainz/useArtistSearch', () => ({
+  useArtistSearch: vi.fn(() => ({ results: [], status: 'idle' })),
+}))
+
 function makeRec(overrides: Partial<Rec> = {}): Rec {
   return {
     id: 1,
@@ -57,7 +61,8 @@ describe('Recs', () => {
     renderRecs()
 
     expect(await screen.findByText('Geogaddi')).toBeInTheDocument()
-    expect(screen.getByText('Boards of Canada · 2002')).toBeInTheDocument()
+    expect(screen.getByText('Boards of Canada')).toBeInTheDocument()
+    expect(screen.getByText('· 2002')).toBeInTheDocument()
     expect(screen.getByText(/rated Music Has the Right to Children/)).toBeInTheDocument()
     expect(screen.getByText('deepen')).toBeInTheDocument()
   })
@@ -149,7 +154,7 @@ describe('Recs — seed input visibility', () => {
     renderRecs()
 
     await screen.findByText('No recommendations yet.')
-    expect(screen.queryByPlaceholderText('Genre (optional)')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
     expect(screen.queryByPlaceholderText('Artist (optional)')).not.toBeInTheDocument()
   })
 
@@ -159,8 +164,20 @@ describe('Recs — seed input visibility', () => {
 
     renderRecs()
 
-    expect(await screen.findByPlaceholderText('Genre (optional)')).toBeInTheDocument()
+    expect(await screen.findByRole('combobox')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Artist (optional)')).toBeInTheDocument()
+  })
+
+  test('the genre picker defaults to "Any genre" and lists the curated genres', async () => {
+    vi.mocked(api.getRecs).mockResolvedValue({ recs: [] })
+    vi.mocked(api.getStats).mockResolvedValue({ total: 0, monthCount: 0, monthAvg: null })
+
+    renderRecs()
+
+    const select = await screen.findByRole('combobox')
+    expect(select).toHaveValue('')
+    expect(screen.getByRole('option', { name: 'Any genre' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'shoegaze' })).toBeInTheDocument()
   })
 
   test('passes the seed through to generateRecs', async () => {
@@ -170,12 +187,93 @@ describe('Recs — seed input visibility', () => {
 
     renderRecs()
 
-    const genreInput = await screen.findByPlaceholderText('Genre (optional)')
-    fireEvent.change(genreInput, { target: { value: 'shoegaze' } })
+    const genreSelect = await screen.findByRole('combobox')
+    fireEvent.change(genreSelect, { target: { value: 'shoegaze' } })
     fireEvent.click(screen.getByRole('button', { name: 'Get recommendations' }))
 
     await waitFor(() => {
       expect(api.generateRecs).toHaveBeenCalledWith({ genre: 'shoegaze' })
     })
+  })
+
+  test('passes free-typed artist text through to generateRecs', async () => {
+    vi.mocked(api.getRecs).mockResolvedValue({ recs: [] })
+    vi.mocked(api.getStats).mockResolvedValue({ total: 0, monthCount: 0, monthAvg: null })
+    vi.mocked(api.generateRecs).mockResolvedValue({ recs: [] })
+
+    renderRecs()
+
+    const artistInput = await screen.findByPlaceholderText('Artist (optional)')
+    fireEvent.change(artistInput, { target: { value: 'Boards of Canada' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Get recommendations' }))
+
+    await waitFor(() => {
+      expect(api.generateRecs).toHaveBeenCalledWith({ artist: 'Boards of Canada' })
+    })
+  })
+})
+
+describe('Recs — P300 teletext carousel (theme-blind markup)', () => {
+  afterEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('renders every rec in the DOM regardless of theme — CSS, not markup, does the switching', async () => {
+    vi.mocked(api.getStats).mockResolvedValue({ total: 20, monthCount: 2, monthAvg: 4 })
+    vi.mocked(api.getRecs).mockResolvedValue({
+      recs: [makeRec({ id: 1, title: 'Geogaddi' }), makeRec({ id: 2, title: 'Selected Ambient Works' })],
+    })
+
+    const { container } = renderRecs()
+
+    await screen.findByText('Geogaddi')
+    expect(container.querySelectorAll('.recs__card')).toHaveLength(2)
+  })
+
+  test('the first card starts active and carries the 1/2 subpage indicator', async () => {
+    vi.mocked(api.getStats).mockResolvedValue({ total: 20, monthCount: 2, monthAvg: 4 })
+    vi.mocked(api.getRecs).mockResolvedValue({
+      recs: [makeRec({ id: 1, title: 'Geogaddi' }), makeRec({ id: 2, title: 'Selected Ambient Works' })],
+    })
+
+    const { container } = renderRecs()
+    await screen.findByText('Geogaddi')
+
+    const cards = container.querySelectorAll('.recs__card')
+    expect(cards[0]).toHaveAttribute('data-active', 'true')
+    expect(cards[1]).not.toHaveAttribute('data-active')
+    expect(screen.getByText('1/2')).toBeInTheDocument()
+    expect(screen.getByText('2/2')).toBeInTheDocument()
+  })
+
+  test('clicking Next advances the active card to the next subpage and wraps around', async () => {
+    vi.mocked(api.getStats).mockResolvedValue({ total: 20, monthCount: 2, monthAvg: 4 })
+    vi.mocked(api.getRecs).mockResolvedValue({
+      recs: [makeRec({ id: 1, title: 'Geogaddi' }), makeRec({ id: 2, title: 'Selected Ambient Works' })],
+    })
+
+    const { container } = renderRecs()
+    await screen.findByText('Geogaddi')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    let cards = container.querySelectorAll('.recs__card')
+    expect(cards[1]).toHaveAttribute('data-active', 'true')
+    expect(cards[0]).not.toHaveAttribute('data-active')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    cards = container.querySelectorAll('.recs__card')
+    expect(cards[0]).toHaveAttribute('data-active', 'true')
+  })
+
+  test('the NOW TUNE TO header and LOG IT/PASS labels are always present in the DOM', async () => {
+    vi.mocked(api.getStats).mockResolvedValue({ total: 20, monthCount: 2, monthAvg: 4 })
+    vi.mocked(api.getRecs).mockResolvedValue({ recs: [makeRec()] })
+
+    renderRecs()
+    await screen.findByText('Geogaddi')
+
+    expect(screen.getByText('NOW TUNE TO…')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Log it' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument()
   })
 })

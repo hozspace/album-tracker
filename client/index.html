@@ -3,7 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Album Tracker</title>
+    <title>%APP_NAME%</title>
+
+    <!-- Web app manifest is generated from src/config.ts by the appManifestPlugin
+         in vite.config.ts, not a static file — no service worker (the app is
+         served over plain http on a tailnet, so one wouldn't register). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- iOS ignores the manifest's icons/display fields; these do the same job. -->
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="%APP_NAME%" />
   </head>
   <body>
     <div id="root"></div>
