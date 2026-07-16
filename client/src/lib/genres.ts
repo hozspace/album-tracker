@@ -1,0 +1,30 @@
+/** Curated broad genre list for the recs seed picker. Kept intentionally short and
+ * broad — the recs engine treats this as free text, so it doesn't need to be
+ * exhaustive, just cover the common cases with an "any genre" default. */
+export const GENRES = [
+  'rock',
+  'indie',
+  'shoegaze',
+  'post-punk',
+  'electronic',
+  'ambient',
+  'techno',
+  'house',
+  'hip-hop',
+  'jazz',
+  'folk',
+  'country',
+  'soul',
+  'funk',
+  'r&b',
+  'metal',
+  'punk',
+  'pop',
+  'classical',
+  'reggae',
+  'dub',
+  'trip-hop',
+  'post-rock',
+  'singer-songwriter',
+  'world',
+] as const

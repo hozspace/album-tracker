@@ -25,6 +25,20 @@ export interface MbReleaseGroupSearchResponse {
   'release-groups': MbReleaseGroup[]
 }
 
+export interface ArtistSearchResult {
+  mbid: string
+  name: string
+}
+
+interface MbArtist {
+  id: string
+  name: string
+}
+
+export interface MbArtistSearchResponse {
+  artists: MbArtist[]
+}
+
 export interface MbReleaseSummary {
   id: string
   status?: string
