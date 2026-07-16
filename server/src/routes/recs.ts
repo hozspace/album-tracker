@@ -1,11 +1,12 @@
 import { Router, type Response } from 'express'
 import type Database from 'better-sqlite3'
-import Anthropic from '@anthropic-ai/sdk'
+import type Anthropic from '@anthropic-ai/sdk'
 import * as recsRepository from '../repositories/recsRepository.js'
 import { fail, ok } from '../lib/envelope.js'
 import { ValidationError } from '../lib/validationError.js'
 import { RecsGenerationError } from '../lib/recsClient.js'
 import { generateAndStoreRecs } from '../lib/recsGeneration.js'
+import { getAnthropicClient as defaultGetAnthropicClient } from '../lib/anthropicClient.js'
 import {
   parseRecId,
   validateGenerateRecsBody,
@@ -53,13 +54,6 @@ export function createRecsRouter(db: Database.Database, options: RecsRouterOptio
   })
 
   return router
-}
-
-function defaultGetAnthropicClient(): Anthropic {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new RecsGenerationError('set ANTHROPIC_API_KEY in .env')
-  }
-  return new Anthropic()
 }
 
 function handleError(res: Response, error: unknown): void {
