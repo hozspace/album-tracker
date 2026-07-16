@@ -5,4 +5,8 @@ services:
       - "4180:4180"
     volumes:
       - ./data:/data
+    environment:
+      - DATA_DIR=/data
+      - TZ=Europe/London
+    env_file: .env
     restart: unless-stopped
