@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { runMigrations } from '../migrations.js'
 import * as logsRepository from '../repositories/logsRepository.js'
 import { fakeArtResponse } from '../test/fakeArtResponse.js'
-import { backfillArtCache, isCacheableArtUrl } from './artCache.js'
+import { backfillArtCache, cacheArtForLog, isCacheableArtUrl } from './artCache.js'
 
 function makeCreateInput(overrides: Partial<Parameters<typeof logsRepository.create>[1]> = {}) {
   return {
@@ -121,5 +121,44 @@ describe('backfillArtCache', () => {
     expect(updated?.artUrl).toBe(externalUrl)
     expect(consoleErrorSpy).toHaveBeenCalled()
     consoleErrorSpy.mockRestore()
+  })
+})
+
+describe('cacheArtForLog mid-download races', () => {
+  it('skips the write when the log was deleted while the download was in flight', async () => {
+    // Arrange
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(fakeArtResponse()))
+    const created = logsRepository.create(
+      db,
+      makeCreateInput({ artUrl: 'https://coverartarchive.org/release-group/xyz/front-250' }),
+    )
+    logsRepository.remove(db, created.id)
+
+    // Act
+    await cacheArtForLog(db, artDir, created)
+
+    // Assert
+    expect(existsSync(join(artDir, `${created.id}.jpg`))).toBe(false)
+  })
+
+  it('skips the write when the log was repointed at different art mid-download', async () => {
+    // Arrange
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(fakeArtResponse()))
+    const created = logsRepository.create(
+      db,
+      makeCreateInput({ artUrl: 'https://coverartarchive.org/release-group/old/front-250' }),
+    )
+    logsRepository.update(db, created.id, {
+      artUrl: 'https://coverartarchive.org/release-group/new/front-250',
+    })
+
+    // Act: caching fires with the stale snapshot of the row
+    await cacheArtForLog(db, artDir, created)
+
+    // Assert: no file written, the newer artUrl untouched
+    expect(existsSync(join(artDir, `${created.id}.jpg`))).toBe(false)
+    expect(logsRepository.findById(db, created.id)?.artUrl).toBe(
+      'https://coverartarchive.org/release-group/new/front-250',
+    )
   })
 })

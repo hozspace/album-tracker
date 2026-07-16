@@ -71,6 +71,12 @@ export async function downloadArt(url: string): Promise<DownloadedArt> {
       throw new Error(`art download failed with status ${response.status}`)
     }
 
+    // fetch follows redirects to arbitrary hosts; the allowlist must hold for
+    // the final URL too, not just the one we started from
+    if (response.url && !isCacheableArtUrl(response.url)) {
+      throw new Error(`art download redirected to disallowed url: ${response.url}`)
+    }
+
     const contentType = response.headers.get('content-type') ?? ''
     if (!contentType.startsWith('image/')) {
       throw new Error(`unexpected art content-type: ${contentType || 'unknown'}`)
@@ -134,6 +140,12 @@ export async function cacheArtForLog(
 
   try {
     const art = await downloadArt(log.artUrl)
+    // The download is fire-and-forget: the log may have been deleted or
+    // repointed at different art while it was in flight. Writing anyway would
+    // orphan a file (served forever with no owning row) or cache the wrong
+    // album's art, so re-check the row before touching disk.
+    const current = logsRepository.findById(db, log.id)
+    if (!current || current.artUrl !== log.artUrl) return
     saveArtFile(artDir, log.id, art)
     logsRepository.update(db, log.id, { artUrl: artUrlForLog(log.id) })
   } catch (error) {

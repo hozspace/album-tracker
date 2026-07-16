@@ -34,6 +34,21 @@ export function createApp(
     res.status(404).json(fail('not found'))
   })
 
+  // Body-parse failures (invalid JSON) throw before any route runs; without
+  // this handler Express would answer with its default HTML error page
+  // instead of the envelope every other error path uses.
+  app.use(
+    (err: Error, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+      if (res.headersSent) return next(err)
+      if (err instanceof SyntaxError) {
+        res.status(400).json(fail('invalid request body'))
+        return
+      }
+      console.error('unhandled request error:', err)
+      res.status(500).json(fail('internal error'))
+    },
+  )
+
   if (process.env.NODE_ENV === 'production') {
     const staticDir = path.resolve(
       process.env.STATIC_DIR ?? path.join(import.meta.dirname, '../../client/dist'),

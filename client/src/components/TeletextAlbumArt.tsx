@@ -11,8 +11,18 @@ import { ditherToTeletextPalette } from '../lib/teletextDither'
 const RAW_SIZE: Record<ArtMode, number> = { photo: 48, dither: 64 }
 
 // Cache treated results per (url, mode) so re-mounting the same album's art
-// (list scroll, back navigation) doesn't re-run canvas work.
+// (list scroll, back navigation) doesn't re-run canvas work. Bounded: in a
+// long-lived PWA session an uncapped map grows with every album ever viewed.
+const TREATED_ART_CACHE_MAX = 80
 const treatedArtCache = new Map<string, string>()
+
+function cacheTreatedArt(key: string, value: string) {
+  if (treatedArtCache.size >= TREATED_ART_CACHE_MAX) {
+    const oldest = treatedArtCache.keys().next().value
+    if (oldest !== undefined) treatedArtCache.delete(oldest)
+  }
+  treatedArtCache.set(key, value)
+}
 
 interface TeletextAlbumArtProps {
   src: string
@@ -49,7 +59,7 @@ export function TeletextAlbumArt({ src, alt, mode, className, onError }: Teletex
         setUseUntreatedFallback(true)
         return
       }
-      treatedArtCache.set(cacheKey, treated)
+      cacheTreatedArt(cacheKey, treated)
       setDataUrl(treated)
     }
 

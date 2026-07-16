@@ -15,8 +15,14 @@ interface MbReleaseGroupSearchResponse {
 // MusicBrainz release group before we ever show it to the listener or store
 // it. Never throws — a network failure or missing match just means the rec
 // gets dropped upstream; the failure is logged here for visibility.
+// Titles/artists land inside quoted Lucene terms; embedded quotes or
+// backslashes would otherwise terminate the term and be parsed as query syntax.
+function escapeLucenePhrase(value: string): string {
+  return value.replace(/[\\"]/g, '\\$&')
+}
+
 export async function verifyReleaseGroup(artist: string, title: string): Promise<VerifiedMatch | null> {
-  const query = `release:"${title}" AND artist:"${artist}"`
+  const query = `release:"${escapeLucenePhrase(title)}" AND artist:"${escapeLucenePhrase(artist)}"`
   const url = `${MUSICBRAINZ_BASE}/release-group?query=${encodeURIComponent(query)}&fmt=json`
 
   let response: Response
