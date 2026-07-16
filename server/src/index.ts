@@ -3,6 +3,7 @@ import { createApp } from './app.js'
 import { db } from './db.js'
 import { backfillArtCache } from './lib/artCache.js'
 import { ART_DIR } from './lib/dataDir.js'
+import { startEmailScheduler } from './lib/emailScheduler.js'
 
 const PORT = Number(process.env.PORT ?? 4180)
 
@@ -16,3 +17,5 @@ app.listen(PORT, () => {
 void backfillArtCache(db, ART_DIR).catch((error) => {
   console.error('art cache backfill failed:', error)
 })
+
+startEmailScheduler(db)

@@ -5,12 +5,15 @@ import { createLogsRouter } from './routes/logs.js'
 import { createStatsRouter } from './routes/stats.js'
 import { createArtRouter } from './routes/art.js'
 import { createRecsRouter, type RecsRouterOptions } from './routes/recs.js'
+import { createEmailRouter, type EmailRouterOptions } from './routes/email.js'
 import { ART_DIR } from './lib/dataDir.js'
+import { fail } from './lib/envelope.js'
 
 export function createApp(
   db: Database.Database,
   artDir: string = ART_DIR,
   recsOptions: RecsRouterOptions = {},
+  emailOptions: EmailRouterOptions = {},
 ): Express {
   const app = express()
   app.use(express.json())
@@ -23,6 +26,13 @@ export function createApp(
   app.use('/api/art', createArtRouter(artDir))
   app.use('/api/stats', createStatsRouter(db))
   app.use('/api/recs', createRecsRouter(db, recsOptions))
+  app.use('/api/email', createEmailRouter(db, emailOptions))
+
+  // Any /api route that fell through the routers above is unknown — return
+  // the standard envelope rather than falling into the SPA/HTML fallback.
+  app.use('/api', (_req, res) => {
+    res.status(404).json(fail('not found'))
+  })
 
   if (process.env.NODE_ENV === 'production') {
     const staticDir = path.resolve(
@@ -30,7 +40,11 @@ export function createApp(
     )
     app.use(express.static(staticDir))
     app.get(/^\/(?!api).*/, (_req, res) => {
-      res.sendFile(path.join(staticDir, 'index.html'))
+      // Pass root instead of a pre-joined absolute path: without root, the
+      // `send` module runs its dotfile check against every segment of the
+      // full resolved path, so any dot-prefixed ancestor directory (e.g.
+      // .claude, .config, a hidden deploy path) makes it 404 a real file.
+      res.sendFile('index.html', { root: staticDir })
     })
   }
 
