@@ -1,0 +1,482 @@
+/* THEME B — Teletext (CEEFAX). Every rule here is scoped under
+   `.theme-teletext` so theme-minimal is byte-for-byte unaffected. The
+   fixed-position header/nav and the scrollable main all share one
+   font-size (set inline by useTeletextFit on .tt-page) so 1ch lines up
+   as one character cell everywhere — that's what makes the 40-column
+   illusion hold together. */
+
+.theme-teletext body {
+  background: #000000;
+}
+
+.theme-teletext .tt-page {
+  font-family: var(--font-display);
+}
+
+/* ---------- row 0: page number / app name / clock ---------- */
+
+.theme-teletext .page-meta {
+  justify-content: space-between;
+  border-bottom: none;
+  padding: 0 1ch;
+  left: 50%;
+  right: auto;
+  width: 40ch;
+  max-width: 100vw;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.theme-teletext .page-meta__page-number,
+.theme-teletext .page-meta__clock {
+  display: inline;
+}
+
+.theme-teletext .page-meta__page-number,
+.theme-teletext .page-meta__app-name {
+  color: var(--tt-white);
+}
+
+.theme-teletext .page-meta__clock {
+  color: var(--tt-yellow);
+}
+
+/* ---------- Fastext row: the bottom nav in CEEFAX costume ---------- */
+
+.theme-teletext .primary-nav {
+  background: #000000;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: none;
+  left: 50%;
+  right: auto;
+  width: 40ch;
+  max-width: 100vw;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.theme-teletext .primary-nav__icon {
+  display: none;
+}
+
+.theme-teletext .primary-nav__link {
+  flex-direction: row;
+  padding: 8px 0;
+}
+
+.theme-teletext .primary-nav__label {
+  font-size: 1em;
+}
+
+.theme-teletext .primary-nav__link,
+.theme-teletext .primary-nav__link--active {
+  color: var(--tt-white);
+}
+
+/* DIARY red, LOG green, RECS yellow, SETUP cyan — same order as the nav
+   items, teletext costume. */
+.theme-teletext .primary-nav__link:nth-child(1) {
+  color: var(--tt-red);
+}
+
+.theme-teletext .primary-nav__link:nth-child(2) {
+  color: var(--tt-green);
+}
+
+.theme-teletext .primary-nav__link:nth-child(3) {
+  color: var(--tt-yellow);
+}
+
+.theme-teletext .primary-nav__link:nth-child(4) {
+  color: var(--tt-cyan);
+}
+
+/* ---------- the 40-column page grid ---------- */
+
+.theme-teletext main[data-screen] {
+  width: 40ch;
+  max-width: 100%;
+  margin: 44px auto 0;
+  padding: 8px 1ch 64px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* The screen-title h1 (visually hidden under minimal) becomes the chunky
+   double-height CEEFAX page heading — DIARY / LOG / RECS / SETTINGS. */
+.theme-teletext main[data-screen] .screen-title {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0 0 1.1em;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  border: 0;
+  display: block;
+  color: var(--tt-yellow);
+  font-weight: normal;
+  transform: scaleY(2);
+  transform-origin: top left;
+}
+
+/* Album detail's chunky heading is the album title, styled separately
+   below; keep the generic "Album" screen-title off-screen there. */
+.theme-teletext main[data-screen='album'] .screen-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  transform: none;
+}
+
+/* ---------- page-load reveal: rows draw in top-to-bottom ---------- */
+
+.theme-teletext .tt-reveal-row {
+  opacity: 0;
+  animation: tt-reveal 110ms ease-out forwards;
+  animation-delay: calc(var(--tt-i, 0) * 10ms);
+}
+
+@keyframes tt-reveal {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-teletext .tt-reveal-row {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ================= Diary (P101) ================= */
+
+.theme-teletext .diary__month-header {
+  position: static;
+  color: var(--tt-cyan);
+  background: none;
+  font-weight: normal;
+  padding: 4px 0;
+}
+
+.theme-teletext .log-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 1ch;
+  padding: 2px 0 6px;
+  border-bottom: none;
+}
+
+.theme-teletext .log-entry__day,
+.theme-teletext .log-entry__weekday,
+.theme-teletext .log-entry__art,
+.theme-teletext .log-entry__relisten {
+  display: none;
+}
+
+.theme-teletext .log-entry__date {
+  display: contents;
+}
+
+.theme-teletext .log-entry__date-compact {
+  display: inline;
+  order: 1;
+  color: var(--tt-cyan);
+}
+
+.theme-teletext .log-entry__meta {
+  display: contents;
+}
+
+.theme-teletext .log-entry__title {
+  order: 2;
+  color: var(--tt-white);
+  font-weight: normal;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.theme-teletext .log-entry__artist {
+  order: 3;
+  flex-basis: 100%;
+  margin-left: 7ch;
+  color: var(--tt-green);
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.theme-teletext .log-entry .rating {
+  order: 4;
+  margin-left: auto;
+}
+
+.theme-teletext .diary__footer {
+  color: var(--tt-white);
+}
+
+/* ================= Log (P102) ================= */
+
+.theme-teletext .album-search__input {
+  background: var(--tt-blue);
+  color: var(--tt-white);
+  border: none;
+  caret-color: var(--tt-white);
+  font-family: inherit;
+}
+
+.theme-teletext .album-search__input::placeholder {
+  color: var(--tt-white);
+  opacity: 0.8;
+}
+
+.theme-teletext .album-search__results {
+  counter-reset: tt-result;
+}
+
+.theme-teletext .album-search__result {
+  counter-increment: tt-result;
+  border-bottom: none;
+  gap: 1ch;
+}
+
+.theme-teletext .album-search__result::before {
+  content: counter(tt-result) ' ';
+  color: var(--tt-cyan);
+}
+
+.theme-teletext .album-search__art {
+  display: none;
+}
+
+.theme-teletext .album-search__title {
+  color: var(--tt-white);
+  font-weight: normal;
+}
+
+.theme-teletext .album-search__artist {
+  color: var(--tt-green);
+}
+
+.theme-teletext .log-form__art {
+  display: none;
+}
+
+.theme-teletext .log-form__title {
+  color: var(--tt-white);
+  font-weight: normal;
+}
+
+.theme-teletext .log-form__artist {
+  color: var(--tt-green);
+}
+
+.theme-teletext .log-form {
+  gap: 4px;
+}
+
+.theme-teletext .log-form__label {
+  display: block;
+  color: var(--tt-cyan);
+}
+
+.theme-teletext .log-form__date,
+.theme-teletext .log-form__fave-track,
+.theme-teletext .log-form__note {
+  background: var(--tt-blue);
+  color: var(--tt-white);
+  border: none;
+  border-radius: 0;
+  font-family: inherit;
+}
+
+.theme-teletext .log-form__relisten label {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.theme-teletext .log-form__relisten input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.theme-teletext .log-form__relisten-text {
+  color: var(--tt-cyan);
+  margin-right: 1ch;
+}
+
+.theme-teletext .log-form__relisten-value {
+  display: inline;
+  color: var(--tt-white);
+}
+
+.theme-teletext .log-form__relisten-value--yes {
+  color: var(--tt-green);
+}
+
+.theme-teletext .log-form__submit {
+  background: none;
+  color: var(--tt-green);
+  font-family: inherit;
+  padding: 8px 0;
+}
+
+/* ================= Album detail (P2xx) ================= */
+
+.theme-teletext .album-detail {
+  display: block;
+}
+
+.theme-teletext .album-detail__hero {
+  width: 16ch;
+  aspect-ratio: 1 / 1;
+  margin: 0 0 1em;
+  border: 1px solid var(--tt-white);
+}
+
+.theme-teletext .album-detail__title {
+  color: var(--tt-yellow);
+  font-weight: normal;
+  font-size: 1em;
+  letter-spacing: normal;
+  margin: 0 0 1.1em;
+  transform: scaleY(2);
+  transform-origin: top left;
+}
+
+.theme-teletext .album-detail__artist {
+  color: var(--tt-green);
+  font-size: 1em;
+}
+
+.theme-teletext .album-detail__user-block {
+  margin: 1em 0 0;
+  border: none;
+  padding: 0;
+  display: block;
+}
+
+.theme-teletext .album-detail__user-block dt {
+  display: inline;
+  min-width: 9ch;
+  color: var(--tt-cyan);
+  font-size: 1em;
+}
+
+.theme-teletext .album-detail__user-block dt::before {
+  content: '';
+  display: block;
+}
+
+.theme-teletext .album-detail__user-block dd {
+  display: inline;
+  margin: 0 0 0 1ch;
+  color: var(--tt-white);
+  font-size: 1em;
+}
+
+/* Favourite track reads magenta; an active relisten reads green.
+   (Selectors repeat the "dd" type to out-specificity the base dd rule above.) */
+.theme-teletext .album-detail__user-block dd.album-detail__user-block-fave {
+  color: var(--tt-magenta);
+}
+
+.theme-teletext .album-detail__user-block dd.album-detail__user-block-relisten--yes {
+  color: var(--tt-green);
+}
+
+.theme-teletext .album-detail__relog {
+  background: none;
+  border: none;
+  color: var(--tt-green);
+  font-family: inherit;
+  padding: 8px 0;
+  margin-top: 1em;
+}
+
+.theme-teletext .album-detail__tracklist {
+  padding: 0;
+  margin: 1em 0 0;
+  list-style: none;
+  counter-reset: tt-track;
+  font-size: 1em;
+}
+
+.theme-teletext .album-detail__tracklist li {
+  counter-increment: tt-track;
+  color: var(--tt-cyan);
+  border-bottom: none;
+  padding: 2px 0;
+}
+
+.theme-teletext .album-detail__tracklist li::before {
+  content: counter(tt-track) ' ';
+}
+
+.theme-teletext .album-detail__tracklist li.album-detail__track--fave {
+  color: var(--tt-magenta);
+  font-weight: normal;
+}
+
+.theme-teletext .album-detail__track--fave::after {
+  content: ' *';
+}
+
+@media (min-width: 720px) {
+  .theme-teletext .album-detail {
+    display: block;
+    grid-template-columns: none;
+    column-gap: 0;
+  }
+
+  .theme-teletext .album-detail__hero {
+    grid-row: auto;
+  }
+}
+
+/* ================= Settings (P400) ================= */
+
+.theme-teletext .settings__app-name {
+  color: var(--tt-white);
+}
+
+.theme-teletext .settings__theme,
+.theme-teletext .settings__art {
+  display: block;
+  border: none;
+  padding: 0;
+  margin: 1em 0 0;
+}
+
+.theme-teletext .settings__theme legend,
+.theme-teletext .settings__art legend {
+  color: var(--tt-cyan);
+  padding: 0;
+}
+
+.theme-teletext .settings__theme-option,
+.theme-teletext .settings__art-option {
+  color: var(--tt-white);
+}
+
+/* ================= shared: empty / error states ================= */
+
+.theme-teletext .empty-state,
+.theme-teletext .error-state {
+  color: var(--tt-cyan);
+}

@@ -5,7 +5,7 @@ import type { Log, Stats } from '../api/types'
 import { AlbumArt } from '../components/AlbumArt'
 import { RatingControl } from '../components/RatingControl/RatingControl'
 import { Screen } from '../components/Screen'
-import { dayOfMonth, weekdayLabel } from '../lib/date'
+import { compactDiaryDate, dayOfMonth, weekdayLabel } from '../lib/date'
 import { errorMessage } from '../lib/errorMessage'
 import { groupLogsByMonth } from '../lib/groupLogsByMonth'
 import './Diary.css'
@@ -91,9 +91,10 @@ function DiaryRow({ log }: { log: Log }) {
       <div className="log-entry__date">
         <span className="log-entry__day">{dayOfMonth(log.listenedOn)}</span>
         <span className="log-entry__weekday">{weekdayLabel(log.listenedOn)}</span>
+        <span className="log-entry__date-compact">{compactDiaryDate(log.listenedOn)}</span>
       </div>
       <div className="log-entry__art">
-        <AlbumArt src={log.artUrl} alt={`${log.title} cover art`} title={log.title} />
+        <AlbumArt src={log.artUrl} alt={`${log.title} cover art`} title={log.title} treat={false} />
       </div>
       <div className="log-entry__meta">
         <span className="log-entry__title">{log.title}</span>

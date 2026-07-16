@@ -1,0 +1,9 @@
+/* Bedstead: public-domain vector rendering of the SAA5050 MODE 7 teletext
+   character generator (bjh21.me.uk/bedstead). VT323 (system/Google-hosted)
+   is not bundled here; it's named as a CSS fallback in tokens.css so text
+   stays readable while Bedstead loads or if the file is unavailable. */
+@font-face {
+  font-family: 'Bedstead';
+  src: url('/fonts/bedstead.otf') format('opentype');
+  font-display: swap;
+}

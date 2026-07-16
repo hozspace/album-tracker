@@ -3,11 +3,11 @@ import { useNavigate, useParams } from 'react-router'
 import { api } from '../api/client'
 import type { Log } from '../api/types'
 import { AlbumArt } from '../components/AlbumArt'
-import { BottomNav } from '../components/BottomNav'
 import { RatingControl } from '../components/RatingControl/RatingControl'
-import { TopBar } from '../components/TopBar'
+import { Screen } from '../components/Screen'
 import { errorMessage } from '../lib/errorMessage'
 import { formatDate } from '../lib/date'
+import { pageNumberForAlbum } from '../lib/pageNumbers'
 import { fetchTracklist } from '../musicbrainz/tracklist'
 import type { Track } from '../musicbrainz/types'
 import './Album.css'
@@ -46,13 +46,9 @@ export function Album() {
   }, [id])
 
   return (
-    <>
-      <TopBar />
-      <main data-screen="album">
-        <AlbumBody state={state} tracks={tracks} onLogAgain={(log) => navigateToLog(navigate, log)} />
-      </main>
-      <BottomNav />
-    </>
+    <Screen screen="album" title="Album" pageNumber={id ? pageNumberForAlbum(id) : undefined}>
+      <AlbumBody state={state} tracks={tracks} onLogAgain={(log) => navigateToLog(navigate, log)} />
+    </Screen>
   )
 }
 
@@ -101,12 +97,14 @@ function AlbumBody({ state, tracks, onLogAgain }: AlbumBodyProps) {
         {log.faveTrack && (
           <>
             <dt>Favourite</dt>
-            <dd>{log.faveTrack}</dd>
+            <dd className="album-detail__user-block-fave">{log.faveTrack}</dd>
           </>
         )}
 
         <dt>Relisten</dt>
-        <dd>{log.relisten ? 'Yes' : 'No'}</dd>
+        <dd className={log.relisten ? 'album-detail__user-block-relisten--yes' : undefined}>
+          {log.relisten ? 'Yes' : 'No'}
+        </dd>
 
         {log.note && (
           <>

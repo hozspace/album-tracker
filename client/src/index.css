@@ -1,5 +1,7 @@
 @import './styles/tokens.css';
 @import './styles/layout.css';
+@import './styles/fonts.css';
+@import './styles/teletext.css';
 
 :root {
   color-scheme: light dark;

@@ -74,7 +74,7 @@ function AlbumSearch({ onSelect }: { onSelect: (album: ReleaseGroupSearchResult)
               onClick={() => onSelect(result)}
             >
               <div className="album-search__art">
-                <AlbumArt src={coverArtUrl(result.mbid)} alt={`${result.title} cover art`} title={result.title} />
+                <AlbumArt src={coverArtUrl(result.mbid)} alt={`${result.title} cover art`} title={result.title} treat={false} />
               </div>
               <div className="album-search__meta">
                 <span className="album-search__title">{result.title}</span>
@@ -152,7 +152,7 @@ function LogForm({ album, onDone, onChangeAlbum }: LogFormProps) {
     <form className="log-form" onSubmit={handleSubmit}>
       <button type="button" className="log-form__selected" onClick={onChangeAlbum}>
         <div className="log-form__art">
-          <AlbumArt src={coverArtUrl(album.mbid)} alt={`${album.title} cover art`} title={album.title} />
+          <AlbumArt src={coverArtUrl(album.mbid)} alt={`${album.title} cover art`} title={album.title} treat={false} />
         </div>
         <div className="log-form__selected-meta">
           <span className="log-form__title">{album.title}</span>
@@ -161,14 +161,17 @@ function LogForm({ album, onDone, onChangeAlbum }: LogFormProps) {
       </button>
 
       <div className="log-form__field">
+        <span className="log-form__label">Rating</span>
         <RatingControl value={rating} onChange={setRating} />
       </div>
 
       <div className="log-form__field">
+        <span className="log-form__label">Favourite song</span>
         <FaveTrackPicker tracks={tracks} value={faveTrack} onChange={setFaveTrack} />
       </div>
 
       <div className="log-form__field">
+        <span className="log-form__label">Listened</span>
         <input
           type="date"
           className="log-form__date"
@@ -184,11 +187,15 @@ function LogForm({ album, onDone, onChangeAlbum }: LogFormProps) {
             checked={relisten}
             onChange={(event) => setRelisten(event.target.checked)}
           />
-          Relisten
+          <span className="log-form__relisten-text">Relisten</span>
+          <span className={relisten ? 'log-form__relisten-value log-form__relisten-value--yes' : 'log-form__relisten-value'}>
+            {relisten ? 'Yes' : 'No'}
+          </span>
         </label>
       </div>
 
       <div className="log-form__field">
+        <span className="log-form__label">Note</span>
         <textarea
           className="log-form__note"
           placeholder="Note"

@@ -24,3 +24,8 @@
   gap: 8px;
   font-size: 15px;
 }
+
+/* Art treatment only applies under teletext; shown via teletext.css. */
+.settings__art {
+  display: none;
+}

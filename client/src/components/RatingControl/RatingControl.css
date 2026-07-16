@@ -41,3 +41,40 @@
 .rating__star-fg {
   fill: var(--rating);
 }
+
+/* Teletext costume: a 10-segment block bar instead of star icons, filled
+   with a background-colour cell (not a glyph) per cell, per the brief. Both
+   representations are always in the DOM (theme-blind markup); CSS decides
+   which one is visible. */
+.rating__blocks,
+.rating__value {
+  display: none;
+}
+
+.theme-teletext .rating__star {
+  display: none;
+}
+
+.theme-teletext .rating__blocks {
+  display: inline-flex;
+  /* one blank cell before the block bar starts, matching the colour-gap convention */
+  margin-left: 1ch;
+}
+
+.theme-teletext .rating__block {
+  display: inline-block;
+  width: 1ch;
+  height: 1em;
+  background: var(--tt-blue);
+}
+
+.theme-teletext .rating__block--filled {
+  background: var(--rating);
+}
+
+.theme-teletext .rating__value {
+  display: inline-block;
+  /* one blank cell before the numeric value, matching the colour-gap convention */
+  margin-left: 1ch;
+  color: var(--rating);
+}
