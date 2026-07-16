@@ -1,16 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { mkdtempSync, rmSync, readFileSync, existsSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { SmtpConfig } from './emailConfig.js'
 
-const { scheduleMock, getSmtpConfigMock, createTransportFromEnvMock, getAnthropicClientMock, runDailyEmailJobMock } =
+const { getSmtpConfigMock, createTransportFromEnvMock, getAnthropicClientMock, runDailyEmailJobMock } =
   vi.hoisted(() => ({
-    scheduleMock: vi.fn(() => ({}) as never),
     getSmtpConfigMock: vi.fn(),
     createTransportFromEnvMock: vi.fn(),
     getAnthropicClientMock: vi.fn(),
     runDailyEmailJobMock: vi.fn(),
   }))
 
-vi.mock('node-cron', () => ({ default: { schedule: scheduleMock } }))
 vi.mock('./emailConfig.js', () => ({ getSmtpConfig: getSmtpConfigMock }))
 vi.mock('./emailTransport.js', () => ({ createTransportFromEnv: createTransportFromEnvMock }))
 vi.mock('./anthropicClient.js', () => ({ getAnthropicClient: getAnthropicClientMock }))
@@ -19,7 +20,9 @@ vi.mock('./emailJob.js', async (importOriginal) => {
   return { ...actual, runDailyEmailJob: runDailyEmailJobMock }
 })
 
-const { startEmailScheduler } = await import('./emailScheduler.js')
+const { startEmailScheduler, missedOccurrence, readLastRun, writeLastRun } = await import(
+  './emailScheduler.js'
+)
 
 const SMTP_CONFIG: SmtpConfig = {
   host: 'smtp.example.com',
@@ -31,9 +34,16 @@ const SMTP_CONFIG: SmtpConfig = {
 }
 const FAKE_TRANSPORTER = { sendMail: vi.fn() } as never
 const FAKE_DB = {} as never
+// long enough that only the startup check runs inside a test
+const POLL_MS = 60 * 60 * 1000
+
+let dir: string
+let lastRunFile: string
+let handle: { stop: () => void } | undefined
 
 beforeEach(() => {
-  scheduleMock.mockClear()
+  dir = mkdtempSync(join(tmpdir(), 'email-sched-test-'))
+  lastRunFile = join(dir, 'email-last-run')
   getSmtpConfigMock.mockReset()
   createTransportFromEnvMock.mockReset()
   getAnthropicClientMock.mockReset()
@@ -44,7 +54,42 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  handle?.stop()
+  handle = undefined
+  rmSync(dir, { recursive: true, force: true })
   vi.restoreAllMocks()
+})
+
+describe('missedOccurrence', () => {
+  it('returns the most recent occurrence when nothing has ever run', () => {
+    const due = missedOccurrence('0 8 * * *', null, new Date('2026-07-16T12:00:00'))
+    expect(due).toEqual(new Date('2026-07-16T08:00:00'))
+  })
+
+  it('returns null when the latest occurrence was already handled', () => {
+    const now = new Date('2026-07-16T12:00:00')
+    const due = missedOccurrence('0 8 * * *', new Date('2026-07-16T08:00:00'), now)
+    expect(due).toBeNull()
+  })
+
+  it('returns the missed occurrence after a day asleep', () => {
+    // last handled yesterday 08:00, machine slept through today's 08:00
+    const due = missedOccurrence(
+      '0 8 * * *',
+      new Date('2026-07-15T08:00:00'),
+      new Date('2026-07-16T09:30:00'),
+    )
+    expect(due).toEqual(new Date('2026-07-16T08:00:00'))
+  })
+})
+
+describe('last-run persistence', () => {
+  it('round-trips through the file and tolerates a missing or corrupt file', () => {
+    expect(readLastRun(lastRunFile)).toBeNull()
+    const when = new Date('2026-07-16T08:00:00Z')
+    writeLastRun(lastRunFile, when)
+    expect(readLastRun(lastRunFile)).toEqual(when)
+  })
 })
 
 describe('startEmailScheduler', () => {
@@ -54,57 +99,14 @@ describe('startEmailScheduler', () => {
     createTransportFromEnvMock.mockReturnValue(null)
 
     // Act
-    const task = startEmailScheduler(FAKE_DB)
+    handle = startEmailScheduler(FAKE_DB, { lastRunFile, pollMs: POLL_MS })
 
     // Assert
-    expect(task).toBeUndefined()
-    expect(scheduleMock).not.toHaveBeenCalled()
+    expect(handle).toBeUndefined()
     expect(console.log).toHaveBeenCalledWith('daily email disabled: SMTP not configured')
   })
 
-  it('schedules the job with the default cron expression when EMAIL_CRON is unset', () => {
-    // Arrange
-    getSmtpConfigMock.mockReturnValue(SMTP_CONFIG)
-    createTransportFromEnvMock.mockReturnValue(FAKE_TRANSPORTER)
-
-    // Act
-    startEmailScheduler(FAKE_DB)
-
-    // Assert
-    expect(scheduleMock).toHaveBeenCalledWith('0 8 * * *', expect.any(Function))
-  })
-
-  it('reads the cron expression from EMAIL_CRON when set', () => {
-    // Arrange
-    process.env.EMAIL_CRON = '30 9 * * *'
-    getSmtpConfigMock.mockReturnValue(SMTP_CONFIG)
-    createTransportFromEnvMock.mockReturnValue(FAKE_TRANSPORTER)
-
-    // Act
-    startEmailScheduler(FAKE_DB)
-
-    // Assert
-    expect(scheduleMock).toHaveBeenCalledWith('30 9 * * *', expect.any(Function))
-  })
-
-  it('logs and does not throw when the scheduled job fails', async () => {
-    // Arrange
-    getSmtpConfigMock.mockReturnValue(SMTP_CONFIG)
-    createTransportFromEnvMock.mockReturnValue(FAKE_TRANSPORTER)
-    getAnthropicClientMock.mockReturnValue({} as never)
-    runDailyEmailJobMock.mockRejectedValue(new Error('smtp connection refused'))
-
-    // Act
-    startEmailScheduler(FAKE_DB)
-    const scheduledFn = scheduleMock.mock.calls[0][1] as () => void
-    scheduledFn()
-    await vi.waitFor(() => expect(console.error).toHaveBeenCalled())
-
-    // Assert
-    expect(console.error).toHaveBeenCalledWith('daily email job failed:', 'smtp connection refused')
-  })
-
-  it('logs success when the scheduled job succeeds', async () => {
+  it('catches up on startup when no occurrence has ever been handled', async () => {
     // Arrange
     getSmtpConfigMock.mockReturnValue(SMTP_CONFIG)
     createTransportFromEnvMock.mockReturnValue(FAKE_TRANSPORTER)
@@ -112,12 +114,59 @@ describe('startEmailScheduler', () => {
     runDailyEmailJobMock.mockResolvedValue({ subject: "Today's album: X — Y", rec: {} })
 
     // Act
-    startEmailScheduler(FAKE_DB)
-    const scheduledFn = scheduleMock.mock.calls[0][1] as () => void
-    scheduledFn()
-    await vi.waitFor(() => expect(console.log).toHaveBeenCalledWith(expect.stringContaining('daily email sent')))
+    handle = startEmailScheduler(FAKE_DB, { lastRunFile, pollMs: POLL_MS })
+    await vi.waitFor(() => expect(runDailyEmailJobMock).toHaveBeenCalledTimes(1))
+
+    // Assert: the handled occurrence is recorded for next time
+    await vi.waitFor(() => expect(existsSync(lastRunFile)).toBe(true))
+    expect(new Date(readFileSync(lastRunFile, 'utf8')).getTime()).not.toBeNaN()
+    expect(console.log).toHaveBeenCalledWith("daily email sent: Today's album: X — Y")
+  })
+
+  it('does nothing on startup when the latest occurrence was already handled', async () => {
+    // Arrange: record the current latest occurrence as handled
+    const current = missedOccurrence('0 8 * * *', null, new Date())
+    writeLastRun(lastRunFile, current!)
+    getSmtpConfigMock.mockReturnValue(SMTP_CONFIG)
+    createTransportFromEnvMock.mockReturnValue(FAKE_TRANSPORTER)
+
+    // Act
+    handle = startEmailScheduler(FAKE_DB, { lastRunFile, pollMs: POLL_MS })
+    await new Promise((resolve) => setTimeout(resolve, 50))
 
     // Assert
-    expect(console.log).toHaveBeenCalledWith("daily email sent: Today's album: X — Y")
+    expect(runDailyEmailJobMock).not.toHaveBeenCalled()
+  })
+
+  it('does not record the occurrence when the job fails, so the next poll retries', async () => {
+    // Arrange
+    getSmtpConfigMock.mockReturnValue(SMTP_CONFIG)
+    createTransportFromEnvMock.mockReturnValue(FAKE_TRANSPORTER)
+    getAnthropicClientMock.mockReturnValue({} as never)
+    runDailyEmailJobMock.mockRejectedValue(new Error('smtp connection refused'))
+
+    // Act
+    handle = startEmailScheduler(FAKE_DB, { lastRunFile, pollMs: POLL_MS })
+    await vi.waitFor(() =>
+      expect(console.error).toHaveBeenCalledWith('daily email job failed:', 'smtp connection refused'),
+    )
+
+    // Assert
+    expect(existsSync(lastRunFile)).toBe(false)
+  })
+
+  it('respects EMAIL_CRON for the schedule', () => {
+    // Arrange: with a handled 09:30 occurrence, a 09:30 schedule is current
+    process.env.EMAIL_CRON = '30 9 * * *'
+    const current = missedOccurrence('30 9 * * *', null, new Date())
+    writeLastRun(lastRunFile, current!)
+    getSmtpConfigMock.mockReturnValue(SMTP_CONFIG)
+    createTransportFromEnvMock.mockReturnValue(FAKE_TRANSPORTER)
+
+    // Act
+    handle = startEmailScheduler(FAKE_DB, { lastRunFile, pollMs: POLL_MS })
+
+    // Assert
+    expect(runDailyEmailJobMock).not.toHaveBeenCalled()
   })
 })
