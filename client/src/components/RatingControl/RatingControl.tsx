@@ -1,6 +1,15 @@
 import { useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { MAX_RATING, MIN_RATING, RATING_STEP, STAR_COUNT, starFillRatio, valueFromPointerX } from './ratingMath'
+import {
+  BLOCK_COUNT,
+  MAX_RATING,
+  MIN_RATING,
+  RATING_STEP,
+  STAR_COUNT,
+  filledBlockCount,
+  starFillRatio,
+  valueFromPointerX,
+} from './ratingMath'
 import { StarIcon } from './StarIcon'
 import './RatingControl.css'
 
@@ -77,6 +86,19 @@ export function RatingControl({ value, onChange, readOnly = false, label = 'Rati
           <StarIcon fillRatio={starFillRatio(displayValue, index)} size={starSize} />
         </span>
       ))}
+      <span className="rating__blocks" aria-hidden="true">
+        {Array.from({ length: BLOCK_COUNT }, (_, index) => (
+          <span
+            key={index}
+            className={
+              index < filledBlockCount(displayValue) ? 'rating__block rating__block--filled' : 'rating__block'
+            }
+          />
+        ))}
+      </span>
+      <span className="rating__value" aria-hidden="true">
+        {displayValue.toFixed(1)}
+      </span>
     </div>
   )
 }

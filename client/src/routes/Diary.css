@@ -38,6 +38,10 @@
   color: var(--text-2);
 }
 
+.log-entry__date-compact {
+  display: none;
+}
+
 .log-entry__art {
   width: 64px;
   height: 64px;

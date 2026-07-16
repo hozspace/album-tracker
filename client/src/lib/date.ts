@@ -1,6 +1,20 @@
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat('en-US', { weekday: 'short' })
 const MONTH_FORMAT = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' })
 const FULL_DATE_FORMAT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+const SHORT_MONTH_NAMES = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
+]
 
 function parseIsoDate(isoDate: string): Date {
   const [year, month, day] = isoDate.split('-').map(Number)
@@ -34,4 +48,11 @@ export function monthLabel(isoDate: string): string {
 /** Formats an ISO date (e.g. "2026-07-12") as "12 July 2026" for user-facing display. */
 export function formatDate(isoDate: string): string {
   return FULL_DATE_FORMAT.format(parseIsoDate(isoDate))
+}
+
+/** Formats an ISO date (e.g. "2026-07-12") as CEEFAX-style "12JUL" for the teletext diary row. */
+export function compactDiaryDate(isoDate: string): string {
+  const date = parseIsoDate(isoDate)
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${day}${SHORT_MONTH_NAMES[date.getMonth()]}`
 }

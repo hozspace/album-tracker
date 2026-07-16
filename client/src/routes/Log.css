@@ -105,6 +105,11 @@
   flex-direction: column;
 }
 
+.log-form__label,
+.log-form__relisten-value {
+  display: none;
+}
+
 .log-form__date,
 .log-form__fave-track,
 .log-form__note {

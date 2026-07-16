@@ -2,6 +2,8 @@ export const STAR_COUNT = 5
 export const RATING_STEP = 0.5
 export const MIN_RATING = 0.5
 export const MAX_RATING = 5
+/** Teletext renders the same value as a 10-segment block bar (one block per half-step). */
+export const BLOCK_COUNT = MAX_RATING / RATING_STEP
 
 export function valueFromPointerX(clientX: number, rectLeft: number, rectWidth: number): number {
   if (rectWidth <= 0) return MIN_RATING
@@ -15,4 +17,9 @@ export function valueFromPointerX(clientX: number, rectLeft: number, rectWidth: 
 
 export function starFillRatio(value: number, starIndex: number): number {
   return Math.min(1, Math.max(0, value - starIndex))
+}
+
+/** Number of filled cells (out of BLOCK_COUNT) in the teletext block-bar rendering. */
+export function filledBlockCount(value: number): number {
+  return Math.round(value / RATING_STEP)
 }

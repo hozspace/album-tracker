@@ -23,3 +23,32 @@
     --divider: #2c2c2e;
   }
 }
+
+/* THEME B — Teletext (CEEFAX). The 3-bit, 8-colour palette is law: no
+   greys, no opacity blends, no antialiased colour mixing, no gradients.
+   Blue is fill-only, never text on black. */
+:root.theme-teletext {
+  --tt-black: #000000;
+  --tt-white: #ffffff;
+  --tt-yellow: #ffff00;
+  --tt-cyan: #00ffff;
+  --tt-green: #00ff00;
+  --tt-magenta: #ff00ff;
+  --tt-red: #ff0000;
+  --tt-blue: #0000ff;
+
+  /* Role mapping per the brief: yellow = headings/ratings, cyan =
+     labels/secondary, white = body, green = affirmative/actions,
+     magenta = favourites, red/blue = Fastext + alerts/background fill. */
+  --bg: var(--tt-black);
+  --surface: var(--tt-black);
+  --text: var(--tt-white);
+  --text-2: var(--tt-cyan);
+  --divider: var(--tt-blue);
+  --accent: var(--tt-yellow);
+  --rating: var(--tt-yellow);
+  --font-ui: 'Bedstead', 'VT323', monospace;
+  --font-display: var(--font-ui);
+  --radius: 0;
+  --cell: 1ch;
+}

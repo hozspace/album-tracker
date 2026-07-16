@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
-import { applyTheme, getStoredTheme } from './theme'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { applyTheme, getStoredTheme, subscribeToThemeChange } from './theme'
 
 describe('theme', () => {
   beforeEach(() => {
@@ -40,5 +40,25 @@ describe('theme', () => {
 
     expect(document.documentElement.classList.contains('theme-minimal')).toBe(true)
     expect(document.documentElement.classList.contains('theme-teletext')).toBe(false)
+  })
+
+  test('subscribeToThemeChange notifies listeners when applyTheme runs', () => {
+    const callback = vi.fn()
+    const unsubscribe = subscribeToThemeChange(callback)
+
+    applyTheme('teletext')
+
+    expect(callback).toHaveBeenCalledWith('teletext')
+    unsubscribe()
+  })
+
+  test('subscribeToThemeChange stops notifying after unsubscribing', () => {
+    const callback = vi.fn()
+    const unsubscribe = subscribeToThemeChange(callback)
+    unsubscribe()
+
+    applyTheme('teletext')
+
+    expect(callback).not.toHaveBeenCalled()
   })
 })

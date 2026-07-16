@@ -58,6 +58,13 @@ main[data-screen] {
   font-weight: 600;
 }
 
+/* Page number and clock are teletext-only furniture (row 0 of the CEEFAX
+   grid); keep them out of the minimal top bar entirely. */
+.page-meta__page-number,
+.page-meta__clock {
+  display: none;
+}
+
 .primary-nav {
   position: fixed;
   bottom: 0;

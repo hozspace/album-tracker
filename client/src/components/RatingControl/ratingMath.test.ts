@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { MAX_RATING, MIN_RATING, starFillRatio, valueFromPointerX } from './ratingMath'
+import { BLOCK_COUNT, MAX_RATING, MIN_RATING, filledBlockCount, starFillRatio, valueFromPointerX } from './ratingMath'
 
 describe('valueFromPointerX', () => {
   test('clamps to the minimum step at the left edge', () => {
@@ -46,5 +46,23 @@ describe('starFillRatio', () => {
 
   test('is empty for a star at or above the value', () => {
     expect(starFillRatio(2.5, 3)).toBe(0)
+  })
+})
+
+describe('filledBlockCount', () => {
+  test('fills all 10 blocks at the maximum rating', () => {
+    expect(filledBlockCount(MAX_RATING)).toBe(BLOCK_COUNT)
+  })
+
+  test('fills a single block at the minimum rating', () => {
+    expect(filledBlockCount(MIN_RATING)).toBe(1)
+  })
+
+  test('fills half the blocks at the midpoint', () => {
+    expect(filledBlockCount(2.5)).toBe(5)
+  })
+
+  test('matches one block per half-step', () => {
+    expect(filledBlockCount(4.5)).toBe(9)
   })
 })
